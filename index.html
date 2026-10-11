@@ -134,6 +134,18 @@
   .toast.bad{background:var(--red);color:#fff;}
   .official{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--red);border-radius:10px;padding:12px 14px;margin:18px 0 0;font-size:14px;line-height:1.45;}
   .official a{color:var(--red-dark);font-weight:700;}
+  .tablewrap{margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+  .ranking{width:100%;border-collapse:collapse;font-size:14px;}
+  .ranking th{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--sub);text-align:left;padding:8px 8px;border-bottom:1px solid var(--line);}
+  .ranking td{padding:9px 8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;}
+  .ranking tr:last-child td{border-bottom:none;}
+  .ranking td,.ranking th{white-space:nowrap;}
+  .ranking td.tn{width:100%;white-space:normal;}
+  .ranking tr.us td{background:var(--red-soft);font-weight:700;}
+  .ranking tr.us td.tn{color:var(--red-dark);}
+  .note-glance{background:rgba(255,255,255,.16);border-radius:8px;padding:8px 10px;margin:-4px 0 12px;font-weight:700;font-size:14.5px;}
+  .note-card{background:var(--amber-soft);color:var(--amber);font-weight:700;font-size:13.5px;border-radius:8px;padding:6px 10px;margin-bottom:8px;}
+  .card.pause{border-style:dashed;text-align:center;}
 </style>
 </head>
 <body>
@@ -151,9 +163,18 @@ const EQUIPE = {
   nom: "U15F3", saison: "2026/27",
   coach: "Thalie Charpenet", assistante: "Marie-Éloise Varaine Pougary",
   entrainements: "Mardi 19h (De Barros) · Mercredi 19h (Annexe De Barros)",
-  classement: { poule: "DFU15-2 Poule A", position: 2, points: 5 },
+  classement: { poule: "DFU15-2 Poule A", position: 4, points: 6, majLe: "2026-10-11",
+    // [équipe, pts, joués, victoires, défaites, pts marqués, pts encaissés] — source : villeurbannesharks.fr
+    table: [
+      ["CO Saint-Fons",                         8, 4, 4, 0, 250, 154],
+      ["Lyon SO / St Genis Oullins Ste Foy 4",  7, 4, 3, 1, 341, 116],
+      ["Cap Basket 69 / Blees Lentilly 2",      6, 4, 2, 2, 203, 223],
+      ["Villeurbanne Sharks",                   6, 4, 2, 2, 245, 218],
+      ["Ouest Lyonnais Basket 2",               5, 4, 1, 3, 239, 265],
+      ["Basket Union Haut Lyonnais",            4, 4, 0, 4,  96, 398],
+    ] },
   pageOfficielle: "https://www.villeurbannesharks.fr/equipes/u15f3-2026-27/",
-  majLe: "2026-10-09",
+  majLe: "2026-10-11",
   regleDepuis: "2026-10-09"   // à partir de cette date : tour passé à la suivante si absente/empêchée, jamais maillots + goûter le même match
 };
 
@@ -168,8 +189,9 @@ const MATCHS = [
   { date:"2026-09-19", heure:"",      adv:"Basket Union Haut Lyonnais",                dom:true,  score:"83-21" },
   { date:"2026-09-26", heure:"",      adv:"Ouest Lyonnais Basket 2",                   dom:false, score:"79-59" },
   { date:"2026-10-03", heure:"",      adv:"CO Saint-Fons",                             dom:true,  score:"25-73" },
-  { date:"2026-10-10", heure:"15:30", adv:"Cap Basket 69 / Blees Lentilly 2",          dom:false, places:["Ritej","Thalie","Marie-Éloise"] },
-  { date:"2026-10-17", heure:"13:00", adv:"Lyon SO Basket Territoire / St Genis Oullins Ste Foy 4", dom:false, places:["Nafissatou","Meagan","Thalie","Marie-Éloise"] },
+  { date:"2026-10-10", heure:"15:30", adv:"Cap Basket 69 / Blees Lentilly 2",          dom:false, score:"58-65" },
+  { date:"2026-10-17", heure:"13:00", adv:"Lyon SO Basket Territoire / St Genis Oullins Ste Foy 4", dom:false, places:["Nafissatou","Meagan","Thalie","Marie-Éloise"],
+    note:"🍂 Dernier match avant les vacances ! On reprend à la rentrée avec de nouvelles dates." },
 ];
 
 // Table de marque : passer à true quand les infos sont connues (affiche les boutons « Je me propose »)
@@ -431,6 +453,11 @@ const EN_LIGNE = {
   const pf = past.reduce((s,m)=>s+(m.score?+m.score.split('-')[0]:0),0), pa = past.reduce((s,m)=>s+(m.score?+m.score.split('-')[1]:0),0);
   $('clTitle').textContent = 'Classement — ' + EQUIPE.classement.poule;
   $('standing').innerHTML = `<div class="pos">${EQUIPE.classement.position}<sup style="font-size:14px">e</sup></div><div class="d">${EQUIPE.classement.points} pts · ${w} victoire${w>1?'s':''}, ${l} défaite${l>1?'s':''}<br>${pf} pts marqués / ${pa} encaissés</div>`;
+  if (EQUIPE.classement.table) {
+    const rows = EQUIPE.classement.table.map((r,k)=>{ const us=/Villeurbanne/.test(r[0]); const diff=r[5]-r[6];
+      return `<tr class="${us?'us':''}"><td>${k+1}</td><td class="tn">${esc(r[0])}</td><td><b>${r[1]}</b></td><td>${r[2]}</td><td>${r[3]}-${r[4]}</td><td>${diff>0?'+':''}${diff}</td></tr>`; }).join('');
+    $('standing').insertAdjacentHTML('afterend', `<div class="tablewrap"><table class="ranking"><thead><tr><th>#</th><th>Équipe</th><th>Pts</th><th>J</th><th>V-D</th><th>Diff</th></tr></thead><tbody>${rows}</tbody></table></div><p class="meta" style="margin-top:8px">Classement au ${short(EQUIPE.classement.majLe)} · source : <a href="${EQUIPE.pageOfficielle}" target="_blank" rel="noopener" style="color:var(--red-dark)">site du club</a></p>`);
+  }
   if (!LIVE && !DEMO) $('liveStatus').style.display='none';
   if (!TABLE_ACTIVE && $('tableCard')) $('tableCard').style.display='none';
 
@@ -444,6 +471,7 @@ const EN_LIGNE = {
     if (m.gouter) t += `🍎 Goûter : ${m.gouter.join(' & ')}\n`;
     if (m.table.length) t += `📋 Table de marque : ${m.table.join(' & ')}\n`;
     if (m.places.length) t += `🙋 Besoin d'une place : ${m.places.join(', ')}\n`;
+    if (m.note) t += `\n${m.note}\n`;
     if (LIVE) t += `\n✅ Présente ou ❌ absente ? Répondez en 1 clic sur la page 👇`;
     t += `\n${location.href.split('?')[0]}`;
     return t;
@@ -455,6 +483,7 @@ const EN_LIGNE = {
       <h3>Prochain match</h3>
       <div class="when">${esc(long(m.date))}${m.heure?' · '+esc(H(m.heure)):''}</div>
       <div class="opp">${m.dom?'🏠 À domicile':'🚗 À l\'extérieur'} — vs ${esc(m.adv)}</div>
+      ${m.note?`<div class="note-glance">${esc(m.note)}</div>`:''}
       ${(LIVE||DEMO)?`<div class="row"><span>👥</span><span><b>${m.yes.length}</b> présente${m.yes.length>1?'s':''} · <b>${m.no.length}</b> absente${m.no.length>1?'s':''} · ${m.unknown.length} sans réponse</span></div>`:''}
       <div class="row"><span>👕</span><span>Maillots : <b>${esc(m.maillots)}</b>${m.next_?` <span style="opacity:.8">(à rapporter le ${short(m.next_.date)})</span>`:''}</span></div>
       ${m.gouter?`<div class="row"><span>🍎</span><span>Goûter : <b>${esc(m.gouter.join(' & '))}</b></span></div>`:`<div class="row"><span>🍎</span><span style="opacity:.85">Pas de goûter (match à l'extérieur)</span></div>`}
@@ -519,7 +548,7 @@ const EN_LIGNE = {
     const res = m.score ? `<span class="result ${m.win?'w':'l'}">${m.win?'V':'D'} ${esc(m.score)}</span>` : `<span class="loc ${m.dom?'home':'away'}">${m.dom?'Domicile':'Extérieur'}</span>`;
     return `<div class="card match ${m.past?'past':''} ${m===next?'next':''}">
       <div class="date"><div class="d">${fmt(m.date,{day:'numeric'})}</div><div class="m">${fmt(m.date,{month:'short'}).replace('.','')}</div></div>
-      <div><div class="opp-name">vs ${esc(m.adv)}</div>
+      <div>${m.note&&!m.past?`<div class="note-card">${esc(m.note)}</div>`:''}<div class="opp-name">vs ${esc(m.adv)}</div>
         <div class="meta">${esc(fmt(m.date,{weekday:'long'}))}${m.heure?' · '+esc(H(m.heure)):''}${m.score?' · '+(m.dom?'domicile':'extérieur'):''}</div>
         <div class="duties">${duty('👕',m.maillots)}${m.gouter?duty('🍎',m.gouter):''}${m.table.length?duty('📋',m.table):''}</div>
       </div>${res}
@@ -583,7 +612,7 @@ const EN_LIGNE = {
   function renderAll(){
     computeRotation(); matchs.forEach(resolve);
     renderGlance();
-    $('upcoming').innerHTML = upcoming.length ? upcoming.map(matchCard).join('') : `<p class="meta">Les prochains matchs seront ajoutés dès que le calendrier est publié.</p>`;
+    $('upcoming').innerHTML = (upcoming.length ? upcoming.map(matchCard).join('') : '') + `<div class="card pause">🍂 <b>Vacances de la Toussaint</b><br><span class="meta">Reprise à la rentrée : les nouvelles dates de matchs seront ajoutées ici dès qu'elles sont publiées.</span></div>`;
     $('past').innerHTML = past.slice().reverse().map(matchCard).join('');
     $('pastSummary').textContent = `▸ Matchs joués (${past.length})`;
     renderRotations(); myMissions();
