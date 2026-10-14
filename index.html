@@ -192,7 +192,7 @@ const MATCHS = [
   { date:"2026-09-26", heure:"",      adv:"Ouest Lyonnais Basket 2",                   dom:false, score:"79-59" },
   { date:"2026-10-03", heure:"",      adv:"CO Saint-Fons",                             dom:true,  score:"25-73" },
   { date:"2026-10-10", heure:"15:30", adv:"Cap Basket 69 / Blees Lentilly 2",          dom:false, score:"58-65" },
-  { date:"2026-10-17", heure:"13:00", adv:"Lyon SO Basket Territoire / St Genis Oullins Ste Foy 4", dom:false, places:["Ritej","Nafissatou","Meagan","Thalie","Marie-Éloise"],
+  { date:"2026-10-17", heure:"13:00", adv:"Lyon SO Basket Territoire / St Genis Oullins Ste Foy 4", dom:false, places:["Nafissatou","Meagan","1 autre joueuse","Thalie","Marie-Éloise"], trouve:["Ritej"],
     note:"🍂 Dernier match avant les vacances ! On reprend à la rentrée avec de nouvelles dates." },
 ];
 
@@ -472,6 +472,7 @@ const EN_LIGNE = {
     t += `👕 Maillots : ${m.maillots}\n`;
     if (m.gouter) t += `🍎 Goûter : ${m.gouter.join(' & ')}\n`;
     if (m.table.length) t += `📋 Table de marque : ${m.table.join(' & ')}\n`;
+    if (m.trouve && m.trouve.length) t += `✅ Place trouvée : ${m.trouve.join(', ')}\n`;
     if (m.places.length) t += `🙋 Besoin d'une place : ${m.places.join(', ')}\n`;
     if (m.note) t += `\n${m.note}\n`;
     if (LIVE) t += `\n✅ Présente ou ❌ absente ? Répondez en 1 clic sur la page 👇`;
@@ -491,6 +492,7 @@ const EN_LIGNE = {
       ${m.gouter?`<div class="row"><span>🍎</span><span>Goûter : <b>${esc(m.gouter.join(' & '))}</b></span></div>`:`<div class="row"><span>🍎</span><span style="opacity:.85">Pas de goûter (match à l'extérieur)</span></div>`}
       ${TABLE_ACTIVE||m.table.length?`<div class="row"><span>📋</span><span>Table de marque : <b>${m.table.length?esc(m.table.join(' & ')):'à trouver'}</b></span></div>`:''}
       <div class="row"><span>🗳️</span><span><b>Places en voiture :</b> répondez au sondage WhatsApp de la semaine pour proposer ou demander une place</span></div>
+      ${m.trouve&&m.trouve.length?`<div class="row"><span>✅</span><span>Place trouvée : <b>${esc(m.trouve.join(', '))}</b></span></div>`:''}
       ${m.places.length?`<div class="row"><span>🚗</span><span>Besoin d'une place : <b>${esc(m.places.join(', '))}</b>${m.offers.length?` · places proposées : ${m.offers.reduce((s,o)=>s+o.k,0)}`:''}</span></div>`:''}
       ${m.skips.length?`<div class="row"><span>↪️</span><span>${m.skips.map(s=>`${esc(s.who)} (${esc(s.why)}) : ${s.kind==='maillots'?'maillots':'goûter'} passé${s.kind==='maillots'?'s':''} à la suivante`).join('<br>')}</span></div>`:''}
       <div class="btns"><a class="btn wa" target="_blank" rel="noopener" href="${wa(reminderText(m))}">📲 Envoyer le rappel au groupe</a></div>`;
@@ -503,7 +505,7 @@ const EN_LIGNE = {
   }
   function answerBlock(m){
     if (!(LIVE||DEMO)) {
-      return `<div class="ride">${m.places.length?`🚗 Besoin d'une place : <b>${esc(m.places.join(', '))}</b><br>`:''}🗳️ Une place à proposer ou besoin d'une place ? <b>Répondez au sondage WhatsApp de la semaine.</b></div>`;
+      return `<div class="ride">${m.trouve&&m.trouve.length?`✅ Place trouvée : <b>${esc(m.trouve.join(', '))}</b><br>`:''}${m.places.length?`🚗 Besoin d'une place : <b>${esc(m.places.join(', '))}</b><br>`:''}🗳️ Une place à proposer ou besoin d'une place ? <b>Répondez au sondage WhatsApp de la semaine.</b></div>`;
     }
     const n = who(), d = m.date;
     const pres = n && latest(d,n,'presence'), car = n && latest(d,n,'voiture'), need = n && latest(d,n,'besoin_place'), tab = n && latest(d,n,'table');
